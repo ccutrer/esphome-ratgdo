@@ -1,0 +1,63 @@
+---
+substitutions:
+  id_prefix: ratgdopoe
+  friendly_name: "RATGDO-PoE"
+  uart_tx_pin: GPIO33
+  uart_rx_pin: GPIO16
+  input_obst_pin: GPIO32
+
+web_server:
+
+esphome:
+  name: ${id_prefix}
+  friendly_name: ${friendly_name}
+  name_add_mac_suffix: true
+  project:
+    name: ccutrer.ratgdo-poe
+    version: "1.0"
+
+esp32:
+  board: esp32dev
+
+dashboard_import:
+  package_import_url: github://ccutrer/esphome-ratgdo/olimex_esp32_poe.yaml@main
+
+packages:
+  remote_package:
+    url: https://github.com/ratgdo/esphome-ratgdo
+    files: [base.yaml]
+
+# Sync time with Home Assistant.
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+switch:
+  - id: !remove "${id_prefix}_status_door"
+  - id: !remove "${id_prefix}_status_obstruction"
+  - id: "${id_prefix}_status_door"
+    platform: template
+    optimistic: true
+  - id: "${id_prefix}_status_obstruction"
+    platform: template
+    optimistic: true
+
+binary_sensor:
+  - id: !remove ${id_prefix}_dry_contact_open
+  - id: !remove ${id_prefix}_dry_contact_close
+  - id: !remove ${id_prefix}_dry_contact_light
+
+api:
+  id: api_server
+
+ota:
+
+logger:
+
+ethernet:
+  type: LAN8720
+  mdc_pin: GPIO23
+  mdio_pin: GPIO18
+  clk_mode: GPIO17_OUT
+  phy_addr: 0
+  power_pin: GPIO12
