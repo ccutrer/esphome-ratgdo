@@ -1,0 +1,63 @@
+---
+substitutions:
+  id_prefix: ratgdo_no_hass
+  friendly_name: "RATGDO"
+  uart_tx_pin: GPIO16
+  uart_rx_pin: GPIO21
+  input_obst_pin: GPIO23
+
+captive_portal:
+web_server:
+
+esphome:
+  name: ${id_prefix}
+  friendly_name: ${friendly_name}
+  name_add_mac_suffix: true
+  project:
+    name: ccutrer.ratgdo-no-hass
+    version: "1.0"
+
+esp32:
+  board: esp32dev
+
+dashboard_import:
+  package_import_url: github://ccutrer/esphome-ratgdo/esp32_no_hass.yaml@main
+
+packages:
+  remote_package:
+    url: https://github.com/ratgdo/esphome-ratgdo
+    files: [base.yaml]
+
+ratgdo:
+  on_sync_failed: !remove
+
+switch:
+  - id: !remove "${id_prefix}_status_door"
+  - id: !remove "${id_prefix}_status_obstruction"
+  - id: "${id_prefix}_status_door"
+    platform: template
+    optimistic: true
+  - id: "${id_prefix}_status_obstruction"
+    platform: template
+    optimistic: true
+
+binary_sensor:
+  - id: !remove ${id_prefix}_dry_contact_open
+  - id: !remove ${id_prefix}_dry_contact_close
+  - id: !remove ${id_prefix}_dry_contact_light
+
+time:
+ - platform: sntp
+   servers: us.pool.ntp.org
+
+api:
+  id: api_server
+
+ota:
+
+improv_serial:
+
+wifi:
+  ap:
+
+logger:
