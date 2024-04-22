@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SoftwareSerial.h" // Using espsoftwareserial https://github.com/plerup/espsoftwareserial
+#include "esphome/components/uart/uart.h"
 #include "esphome/core/optional.h"
 
 #include "callbacks.h"
@@ -85,7 +85,7 @@ namespace ratgdo {
             }
         };
 
-        class Secplus2 : public Protocol {
+        class Secplus2 : public Protocol, public uart::UARTDevice {
         public:
             void setup(RATGDOComponent* ratgdo, Scheduler* scheduler, InternalGPIOPin* rx_pin, InternalGPIOPin* tx_pin);
             void loop();
@@ -140,8 +140,6 @@ namespace ratgdo {
             OnceCallbacks<void()> on_command_sent_;
 
             Traits traits_;
-
-            SoftwareSerial sw_serial_;
 
             InternalGPIOPin* tx_pin_;
             InternalGPIOPin* rx_pin_;

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "SoftwareSerial.h" // Using espsoftwareserial https://github.com/plerup/espsoftwareserial
 #include "esphome/core/optional.h"
 
 #include "callbacks.h"
@@ -38,7 +37,6 @@ namespace ratgdo {
             Traits traits_;
 
             InternalGPIOPin* tx_pin_;
-            InternalGPIOPin* rx_pin_;
 
             RATGDOComponent* ratgdo_;
             Scheduler* scheduler_;

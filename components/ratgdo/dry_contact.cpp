@@ -17,7 +17,6 @@ namespace ratgdo {
             this->ratgdo_ = ratgdo;
             this->scheduler_ = scheduler;
             this->tx_pin_ = tx_pin;
-            this->rx_pin_ = rx_pin;
         }
 
         void DryContact::loop()

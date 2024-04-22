@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "esphome/components/uart/uart.h"
 #include "esphome/core/component.h"
 #include "esphome/core/hal.h"
 #include "esphome/core/preferences.h"
@@ -46,7 +47,7 @@ namespace ratgdo {
     using protocol::Args;
     using protocol::Result;
 
-    class RATGDOComponent : public Component {
+    class RATGDOComponent : public Component, public uart::UARTDevice {
     public:
         void setup() override;
         void loop() override;

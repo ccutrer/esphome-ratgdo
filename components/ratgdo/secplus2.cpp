@@ -33,10 +33,6 @@ namespace ratgdo {
             this->tx_pin_ = tx_pin;
             this->rx_pin_ = rx_pin;
 
-            this->sw_serial_.begin(9600, SWSERIAL_8N1, rx_pin->get_pin(), tx_pin->get_pin(), true);
-            this->sw_serial_.enableIntTx(false);
-            this->sw_serial_.enableAutoBaud(true);
-
             this->traits_.set_features(Traits::all());
         }
 
@@ -262,12 +258,17 @@ namespace ratgdo {
             static uint32_t last_read = 0;
 
             if (!reading_msg) {
-                while (this->sw_serial_.available()) {
-                    uint8_t ser_byte = this->sw_serial_.read();
+                while (this->ratgdo_->available()) {
+                    uint8_t ser_byte;
+                    if (!this->ratgdo_->read_byte(&ser_byte)) {
+                        ESP_LOG2(TAG, "Could not read a byte, baud: %d", millis(), this->ratgdo_->get_baud_rate());
+                        byte_count = 0;
+                        continue;
+                    }
                     last_read = millis();
 
                     if (ser_byte != 0x55 && ser_byte != 0x01 && ser_byte != 0x00) {
-                        ESP_LOG2(TAG, "Ignoring byte (%d): %02X, baud: %d", byte_count, ser_byte, this->sw_serial_.baudRate());
+                        ESP_LOG2(TAG, "Ignoring byte (%d): %02X, baud: %d", byte_count, ser_byte, this->ratgdo_->get_baud_rate());
                         byte_count = 0;
                         continue;
                     }
@@ -276,7 +277,7 @@ namespace ratgdo {
 
                     // if we are at the start of a message, capture the next 16 bytes
                     if (msg_start == 0x550100) {
-                        ESP_LOG1(TAG, "Baud: %d", this->sw_serial_.baudRate());
+                        ESP_LOG1(TAG, "Baud: %d", this->ratgdo_->get_baud_rate());
                         rx_packet[0] = 0x55;
                         rx_packet[1] = 0x01;
                         rx_packet[2] = 0x00;
@@ -287,12 +288,16 @@ namespace ratgdo {
                 }
             }
             if (reading_msg) {
-                while (this->sw_serial_.available()) {
-                    uint8_t ser_byte = this->sw_serial_.read();
+                while (this->ratgdo_->available()) {
+                    uint8_t ser_byte;
+                    if (!this->ratgdo_->read_byte(&ser_byte)) {
+                        ESP_LOG2(TAG, "Could not read a byte");
+                        break;
+                    }
                     last_read = millis();
                     rx_packet[byte_count] = ser_byte;
                     byte_count++;
-                    // ESP_LOG2(TAG, "Received byte (%d): %02X, baud: %d", byte_count, ser_byte, this->sw_serial_.baudRate());
+                    // ESP_LOG2(TAG, "Received byte (%d): %02X, baud: %d", byte_count, ser_byte, this->ratgdo_->get_baud_rate());
 
                     if (byte_count == PACKET_LENGTH) {
                         reading_msg = false;
@@ -483,7 +488,7 @@ namespace ratgdo {
             this->tx_pin_->digital_write(false); // line high for at least 1 bit
             delayMicroseconds(130);
 
-            this->sw_serial_.write(this->tx_packet_, PACKET_LENGTH);
+            this->ratgdo_->write_array(this->tx_packet_, PACKET_LENGTH);
 
             this->transmit_pending_ = false;
             this->transmit_pending_start_ = 0;

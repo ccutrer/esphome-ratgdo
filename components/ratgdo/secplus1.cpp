@@ -17,9 +17,6 @@ namespace ratgdo {
             this->ratgdo_ = ratgdo;
             this->scheduler_ = scheduler;
             this->tx_pin_ = tx_pin;
-            this->rx_pin_ = rx_pin;
-
-            this->sw_serial_.begin(1200, SWSERIAL_8E1, rx_pin->get_pin(), tx_pin->get_pin(), true);
 
             this->traits_.set_features(HAS_DOOR_STATUS | HAS_LIGHT_TOGGLE | HAS_LOCK_TOGGLE);
         }
@@ -216,12 +213,17 @@ namespace ratgdo {
             static RxPacket rx_packet;
 
             if (!reading_msg) {
-                while (this->sw_serial_.available()) {
-                    uint8_t ser_byte = this->sw_serial_.read();
+                while (this->ratgdo_->available()) {
+                    uint8_t ser_byte;
+                    if (!this->ratgdo_->read_byte(&ser_byte)) {
+                        ESP_LOG2(TAG, "[%d] Could not read a byte, baud: %d", millis(), this->ratgdo_->get_baud_rate());
+                        byte_count = 0;
+                        continue;
+                    }
                     this->last_rx_ = millis();
 
                     if (ser_byte < 0x30 || ser_byte > 0x3A) {
-                        ESP_LOG2(TAG, "[%d] Ignoring byte [%02X], baud: %d", millis(), ser_byte, this->sw_serial_.baudRate());
+                        ESP_LOG2(TAG, "[%d] Ignoring byte [%02X], baud: %d", millis(), ser_byte, this->ratgdo_->get_baud_rate());
                         byte_count = 0;
                         continue;
                     }
@@ -241,8 +243,12 @@ namespace ratgdo {
                 }
             }
             if (reading_msg) {
-                while (this->sw_serial_.available()) {
-                    uint8_t ser_byte = this->sw_serial_.read();
+                while (this->ratgdo_->available()) {
+                    uint8_t ser_byte;
+                    if (!this->ratgdo_->read_byte(&ser_byte)) {
+                        ESP_LOG2(TAG, "[%d] Could not read a byte", millis());
+                        break;
+                    }
                     this->last_rx_ = millis();
                     rx_packet[byte_count++] = ser_byte;
                     ESP_LOG2(TAG, "[%d] Received byte: [%02X]", millis(), ser_byte);
@@ -435,15 +441,8 @@ namespace ratgdo {
 
         void Secplus1::transmit_byte(uint32_t value)
         {
-            bool enable_rx = (value == 0x38) || (value == 0x39) || (value == 0x3A);
-            if (!enable_rx) {
-                this->sw_serial_.enableIntTx(false);
-            }
-            this->sw_serial_.write(value);
+            this->ratgdo_->write_byte(value);
             this->last_tx_ = millis();
-            if (!enable_rx) {
-                this->sw_serial_.enableIntTx(true);
-            }
             ESP_LOG2(TAG, "[%d] Sent byte: [%02X]", millis(), value);
         }
 

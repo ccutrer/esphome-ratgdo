@@ -2,7 +2,7 @@
 
 #include <queue>
 
-#include "SoftwareSerial.h" // Using espsoftwareserial https://github.com/plerup/espsoftwareserial
+#include "esphome/components/uart/uart.h"
 #include "esphome/core/optional.h"
 
 #include "callbacks.h"
@@ -142,10 +142,7 @@ namespace ratgdo {
 
             Traits traits_;
 
-            SoftwareSerial sw_serial_;
-
             InternalGPIOPin* tx_pin_;
-            InternalGPIOPin* rx_pin_;
 
             RATGDOComponent* ratgdo_;
             Scheduler* scheduler_;
