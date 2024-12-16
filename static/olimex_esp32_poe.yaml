@@ -47,6 +47,9 @@ binary_sensor:
   - id: !remove ${id_prefix}_dry_contact_close
   - id: !remove ${id_prefix}_dry_contact_light
 
+script:
+  - id: !remove ${id_prefix}_dry_contact_door_control
+
 api:
   id: api_server
 
